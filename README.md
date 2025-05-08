@@ -56,3 +56,5 @@ Augmentation was applied **only to training samples** using `tf.image` methods:
 
 ```python
 input → Conv3D → Residual Blocks → GAP → Dense → Sigmoid
+
+## **Medium Article**:https://medium.com/@aparnashankar004/autism-detection-from-brain-mri-and-screening-data-a-cloud-based-machine-learning-approach-5549d582ad45
