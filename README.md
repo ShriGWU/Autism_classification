@@ -1,60 +1,97 @@
-# Autism_classification
-# 🧠 Autism Detection from Brain MRI Scans using Deep Learning
-
-## 🔍 Overview
-
-This project implements a deep learning pipeline to classify **Autism Spectrum Disorder (ASD)** from structural brain MRI images. The workflow involves preprocessing `.nii` scans, applying data augmentation, training a 3D CNN/ResNet model, and deploying the system using a full-stack approach.
-
-- 🚀 **Frontend**: User interface via [Lovable](https://lovable.so)
-- 🔌 **Backend**: Flask API for uploading & predicting MRI scans
-- 🖥️ **Server**: Google Cloud VM with NVIDIA L4 GPU
-- 🧠 **Dataset**: ABIDE (Autism Brain Imaging Data Exchange)
 
 ---
 
-## 🧠 Dataset
+## 📊 Dataset
 
-- **Source**: [ABIDE MRI Dataset](http://fcon_1000.projects.nitrc.org/indi/abide/)
-- **Classes**: 
-  - `Autistic` (Treatment) → 547 scans
-  - `Control` (Non-ASD) → 617 scans
-- **Total Before Augmentation**: 1164 `.nii` MRI scans
-- **After 3x Augmentation on 80% Training Data**:
-  - ~4,368 total training images
-  - ~233 per class in test set (20%)
-
----
-
-## 🧪 Preprocessing Steps
-
-1. **Conversion**: `.nii` → `numpy` arrays (`.npy`)
-2. **Normalization**: Scaled pixel intensities to range `[0, 1]`
-3. **Resizing**: Volumes resized to `(80, 128, 128)`
-4. **Batch Processing**: Training and labels saved as `.npy` batch files
+- **Source**: [ABIDE (Autism Brain Imaging Data Exchange)](http://fcon_1000.projects.nitrc.org/indi/abide/)
+- **Classes**:
+  - `Autistic (1)` - 547 images
+  - `Control (0)` - 617 images
+- **Augmentation**: Training data augmented 3x using TensorFlow's `tf.image`
+- **Final Distribution**:
+  - After augmentation: 1312 (autistic) + 1480 (control)
+  - Train-test split: 80:20 (Stratified)
 
 ---
 
-## 🔁 Augmentation (Training Set Only)
+## ⚙️ Preprocessing
 
-Augmentation was applied **only to training samples** using `tf.image` methods:
-
-- `random_flip_left_right()`
-- `random_brightness()` (delta=0.1)
-- `random_contrast()` (0.9 - 1.1)
-- 3x augmented per original training image
+- Read `.nii` MRI files using `nibabel`
+- Normalize voxel intensities to [0, 1]
+- Resize to `(80, 128, 128)` using `scipy.ndimage.zoom`
+- Convert to `.npy` format for efficient loading
+- Batched and saved into memory-mapped `.npy` files
 
 ---
 
-## 🧠 Model Architecture
+## 🧪 Augmentation
 
-### ➤ 3D Residual CNN
+Only training data is augmented using `tf.image` methods:
 
-- `Conv3D` + `BatchNorm` + `ReLU`
-- Custom residual blocks
-- `MaxPooling3D`, `GlobalAveragePooling3D`
-- Final output layer: `Dense(1, activation='sigmoid')`
+- `tf.image.random_flip_left_right`
+- `tf.image.random_brightness`
+- `tf.image.random_contrast`
+- `tf.image.random_crop`
+- `tf.image.random_saturation`
 
-```python
-input → Conv3D → Residual Blocks → GAP → Dense → Sigmoid
+---
 
-## **Medium Article**:https://medium.com/@aparnashankar004/autism-detection-from-brain-mri-and-screening-data-a-cloud-based-machine-learning-approach-5549d582ad45
+## 🧠 Model
+
+A custom 3D ResNet-inspired CNN:
+
+- Residual blocks with `Conv3D`, `BatchNorm`, `ReLU`
+- MaxPooling and GlobalAveragePooling
+- Dropout Regularization
+- Final Dense Layer with Sigmoid for binary classification
+
+---
+
+## 🖥️ Infrastructure
+
+- **Frontend**: Built using [Lovable](https://lovable.so)
+- **Backend**: `Flask` API hosted on GCP VM
+- **Model**: Served using TensorFlow 2.15 on NVIDIA L4 GPU
+- **Storage**: MRI files stored in Google Cloud Storage Buckets
+
+---
+
+## 🚀 Deployment
+
+1. Upload `.nii` file via frontend
+2. Flask API accepts request and saves to `uploads/`
+3. Image is preprocessed → reshaped → batched
+4. TensorFlow model makes a prediction
+5. Result (Autism Detected / Not Detected + Confidence %) is returned
+
+---
+
+## ✅ Evaluation
+
+- Final Test Accuracy: **57%**
+- Binary classification: `Autism` vs `Control`
+- Evaluation metric: `Accuracy = (TP + TN) / (TP + FP + FN + TN)`
+
+---
+
+## 🔗 Reference Article
+
+[Autism Detection from Brain MRI and Screening Data — A Cloud-Based Machine Learning Approach](https://medium.com/@aparnashankar004/autism-detection-from-brain-mri-and-screening-data-a-cloud-based-machine-learning-approach-5549d582ad45)
+
+---
+
+## 🧠 Future Work
+
+- Integrate behavioral/survey data
+- Use pretrained 3D medical models (e.g., MedicalNet)
+- Explore explainability (GradCAM for MRI)
+- Extend to multi-class neurological prediction
+
+---
+
+## 👤 Author
+
+- **Name**: Shrishail Ravi Terni
+- **Role**: Individual project under Master's Program
+- **Platform**: Google Cloud (Vertex AI, Compute Engine)
+
